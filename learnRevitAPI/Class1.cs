@@ -22,6 +22,7 @@ public class GroupPickFilter : ISelectionFilter
     }
 }
 
+//this is the command that came with the demo code
 [TransactionAttribute(TransactionMode.Manual)]
 [RegenerationAttribute(RegenerationOption.Manual)]
 public class Lab1PlaceGroup : IExternalCommand

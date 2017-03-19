@@ -9,6 +9,19 @@ using Autodesk.Revit.UI.Selection;
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 
+public class GroupPickFilter : ISelectionFilter
+{
+    public bool AllowElement(Element e)
+    {
+        return e.Category.Id.IntegerValue.Equals((int)BuiltInCategory.OST_IOSModelGroups);
+    }
+
+    public bool AllowReference(Reference r, XYZ p)
+    {
+        return false;
+    }
+}
+
 [TransactionAttribute(TransactionMode.Manual)]
 [RegenerationAttribute(RegenerationOption.Manual)]
 public class Lab1PlaceGroup : IExternalCommand
@@ -27,9 +40,22 @@ public class Lab1PlaceGroup : IExternalCommand
 
         //Pick a group
         Selection sel = uiApp.ActiveUIDocument.Selection;
-        pickedRef = sel.PickObject(ObjectType.Element, "Please select a group");
+        //this filter makes sure the user only selects groups
+        GroupPickFilter filter = new GroupPickFilter();
+        pickedRef = sel.PickObject(ObjectType.Element, filter,"Please select a group");
         Element elem = doc.GetElement(pickedRef);
-        Group group = elem as Group;
+        Group group = null;
+        //trying to cast the selected element to a group and complaining about it if it fails
+        try
+        {
+            group = elem as Group;
+        }
+        catch (Exception e)
+        {
+            message = "Failed to convert the selection to group: "+e.Message;
+            elements.Insert(elem);
+            return Result.Failed;
+        }
 
         //Pick a point
         XYZ point = sel.PickPoint("Please pick a point to place group");

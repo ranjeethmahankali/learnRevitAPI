@@ -243,3 +243,6 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+# ignoring changes to the prject file itself
+*.csproj

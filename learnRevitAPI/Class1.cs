@@ -33,15 +33,20 @@ namespace dAlchemy{
 
             //get the path of this plugin assembly
             string path = Assembly.GetExecutingAssembly().Location;
-            //create data to attach to a button later.
-            PushButtonData data = new PushButtonData("pluginCommand","Command",path,"dAlchemy.PlaceGroup");
 
+            //create data to attach to a button later.
+            PushButtonData data = new PushButtonData("pluginCommand","Command",path,"dAlchemy.FilterClass");
             //create a button with the above data
             PushButton button = panel.AddItem(data) as PushButton;
-
             //this is the tooltip for the button
             button.ToolTip = "This is just a test plugin";
 
+            //adding another button in the same way
+            /*
+            PushButtonData data2 = new PushButtonData("secondCommand", "Filter", path, "dAlchemy.FilterClass");
+            PushButton button2 = panel.AddItem(data2) as PushButton;
+            button2.ToolTip = "This is just a test plugin";
+            */
             //this is how you load an icon for that button
             //Uri uriImage = new Uri(@"D:\Sample\HelloWorld\bin\Debug\39-Globe_32x32.png");
             //BitmapImage largeImage = new BitmapImage(uriImage);
@@ -101,6 +106,36 @@ namespace dAlchemy{
             trans.Start("Lab");
             doc.Create.PlaceGroup(point, group.GroupType);
             trans.Commit();
+
+            return Result.Succeeded;
+        }
+    }
+    
+    //this is the command that came with the demo code
+    [TransactionAttribute(TransactionMode.Manual)]
+    [RegenerationAttribute(RegenerationOption.Manual)]
+    public class FilterClass : IExternalCommand
+    {
+        public Result Execute(
+          ExternalCommandData commandData,
+          ref string message,
+          ElementSet elements)
+        {
+            UIApplication app = commandData.Application;
+            Document doc = app.ActiveUIDocument.Document;
+
+            ElementCategoryFilter filter = new ElementCategoryFilter(BuiltInCategory.OST_Walls);
+
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            IList<Element> walls = collector.WherePasses(filter).WhereElementIsNotElementType().ToElements();
+
+            GeometryElement geomElem = walls[0].get_Geometry(new Options());
+            foreach(GeometryObject obj in geomElem)
+            {
+                Solid wallSolid = obj as Solid;
+                Curve cur = wallSolid.Edges.get_Item(0).AsCurve();
+                cur.GetEndPoint(0);
+            }
 
             return Result.Succeeded;
         }

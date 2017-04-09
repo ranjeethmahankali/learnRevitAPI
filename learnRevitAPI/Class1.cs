@@ -11,6 +11,8 @@ using Autodesk.Revit.UI.Selection;
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 
+using Collada141;
+
 namespace dAlchemy{
     public class GroupPickFilter : ISelectionFilter
     {
@@ -124,20 +126,37 @@ namespace dAlchemy{
             UIApplication app = commandData.Application;
             Document doc = app.ActiveUIDocument.Document;
 
-            ElementCategoryFilter filter = new ElementCategoryFilter(BuiltInCategory.OST_Walls);
+            ElementCategoryFilter filter = new ElementCategoryFilter(BuiltInCategory.OST_Topography);
 
             FilteredElementCollector collector = new FilteredElementCollector(doc);
-            IList<Element> walls = collector.WherePasses(filter).WhereElementIsNotElementType().ToElements();
+            IList<Element> topoSurf = collector.WherePasses(filter).WhereElementIsNotElementType().ToElements();
 
-            GeometryElement geomElem = walls[0].get_Geometry(new Options());
-            foreach(GeometryObject obj in geomElem)
+            TopographySurface topo = topoSurf[0] as TopographySurface;
+
+            try
             {
-                Solid wallSolid = obj as Solid;
-                Curve cur = wallSolid.Edges.get_Item(0).AsCurve();
-                cur.GetEndPoint(0);
-            }
+                GeometryElement elementGeometry = topo.get_Geometry(new Options());
+                TaskDialog.Show("Here", elementGeometry.LongCount().ToString());
 
-            return Result.Succeeded;
+                int count = 0;
+                foreach(GeometryObject obj in elementGeometry)
+                {
+                    if (obj is Mesh)
+                    {
+                        Mesh topoMesh = obj as Mesh;
+                        count += topoMesh.NumTriangles;
+                    }
+                }
+                
+                TaskDialog.Show("There", count.ToString());
+
+                return Result.Succeeded;
+            }
+            catch(Exception e)
+            {
+                TaskDialog.Show("There", e.Message);
+                return Result.Cancelled;
+            }
         }
     }
 }

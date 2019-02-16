@@ -146,6 +146,14 @@ namespace dAlchemy{
                         Mesh topoMesh = obj as Mesh;
                         count += topoMesh.NumTriangles;
                     }
+                    else if(obj is Solid)
+                    {
+                        Solid sol = obj as Solid;
+                        foreach(Face face in sol.Faces)
+                        {
+                            Mesh meshFace = face.Triangulate(0.7);
+                        }
+                    }
                 }
                 
                 TaskDialog.Show("There", count.ToString());
